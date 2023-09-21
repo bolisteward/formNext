@@ -16,10 +16,11 @@ const nextConfig = {
   },
   
   experimental: {
-    serverActions: true,
+    serverActions: false,
   },
   
-  //output: "export",
+  output: "export",
+  //output: 'standalone',
 };
 
 module.exports = nextConfig;
