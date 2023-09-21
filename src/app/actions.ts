@@ -36,10 +36,21 @@ export const onSubmit: SubmitHandler<IFormInput> = async (
     );
     formDataAplicante.append("education", data.education);
     formDataAplicante.append("foto", data.foto_aplicante[0] as File);
-    
+
+    /*
     const aplicante_res = await fetch("/api/aplicante", {
       method: "POST",
       body: formDataAplicante,
+    });
+    */
+    const example = {"action":"aplicante","registration_date":"2023-09-20","names":"MIGUEL CARLOS3","surnames":"MONTOYA R","sexo":"mujer","birth_date":"2023-09-11","birth_city":"quito","birth_country":"ecuador","residence_country":"Europa","civil_status":"casado","children":"0","phone":"+593 554521215","email":"silaxan2006@hotmail.com","address":"asdfasf","passport":"245896452","passport_emision":"2023-09-11","passport_expiration":"2023-09-12","education":"universidad","foto_url":"2023-09-20/1695230844254-MONTOYA.png"}
+    
+    const aplicante_res = await fetch("https://form.visaglobal.com.ec/register/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", // Establecer el tipo de contenido a JSON
+      },
+      body: JSON.stringify(example),
     });
 
     if (!aplicante_res.ok) {
