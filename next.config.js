@@ -19,7 +19,7 @@ const nextConfig = {
     serverActions: false,
   },
   
-  output: "export",
+  //output: "export",
   //output: 'standalone',
 };
 

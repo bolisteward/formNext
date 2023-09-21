@@ -22,7 +22,7 @@ import {
 
 import Image from "next/image";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
-import { POSTData } from "./actions";
+import { onSubmit } from "./actions";
 import { IFormInput } from "@typesApp/index";
 import { useEffect, useState } from "react";
 import { Man, Woman } from "@styled-icons/ionicons-solid";
@@ -118,97 +118,6 @@ export default function Page() {
       }
     }
   };
-
-
-
-  const onSubmit: SubmitHandler<IFormInput> = async (
-    data: IFormInput
-  ) => {
-    try {
-      const formDataAplicante = new FormData();
-      formDataAplicante.append("action", "aplicante");
-      formDataAplicante.append(
-        "nombres",
-        `${data.first_name.toUpperCase()} ${data.second_name.toUpperCase()}`
-      );
-      formDataAplicante.append("apellidos", data.apellidos.toUpperCase());
-      formDataAplicante.append("sexo", data.sexo);
-      formDataAplicante.append(
-        "fecha_nacimiento",
-        data.fecha_nacimiento.toString()
-      );
-      formDataAplicante.append("ciudad_nacimiento", data.ciudad_nacimiento);
-      formDataAplicante.append("pais_nacimiento", data.pais_nacimiento);
-      formDataAplicante.append("pais_residencia", data.pais_residencia);
-      formDataAplicante.append("estado_civil", data.estado_civil);
-      formDataAplicante.append("children", data.children.length.toString());
-      formDataAplicante.append("phone", data.phone);
-      formDataAplicante.append("email", data.email);
-      formDataAplicante.append("address", data.direccion);
-      formDataAplicante.append("passport", data.passport);
-      formDataAplicante.append(
-        "passport_emision",
-        data.passport_emision.toString()
-      );
-      formDataAplicante.append(
-        "passport_expiration",
-        data.passport_expiration.toString()
-      );
-      formDataAplicante.append("education", data.education);
-      formDataAplicante.append("foto", data.foto_aplicante[0] as File);
-
-      const { mensaje_ap,  id_aplicante } =  await POSTData(formDataAplicante);
-      
-      if (data.estado_civil === "casado") {
-        const formDataConyugue = new FormData();
-        formDataConyugue.append(
-          "nombres",
-          `${data.first_name_conyugue.toUpperCase()} ${data.second_name_conyugue.toUpperCase()}`
-        );
-        formDataConyugue.append(
-          "apellidos",
-          data.apellidos_conyugue.toUpperCase()
-        );
-        formDataConyugue.append("passport", data.passport_conyugue);
-        formDataConyugue.append(
-          "passport_emision",
-          data.passport_emision_conyugue.toString()
-        );
-        formDataConyugue.append(
-          "passport_expiration",
-          data.passport_expiration_conyugue.toString()
-        );
-        formDataConyugue.append("foto", data.foto_conyugue[0] as File);
-        formDataConyugue.append("id_aplicante", id_aplicante);
-  
-        const result_conyugue =  await POSTData(formDataConyugue);
-        
-      }
-  
-      if (data.children.length > 0) {
-  
-        const promises = data.children.map(async (kid, index) => {
-          const formDataKid = new FormData();
-          formDataKid.append(
-            "nombres",
-            `${kid.first_name.toUpperCase()} ${kid.second_name.toUpperCase()}`
-          );
-          formDataKid.append("apellidos", kid.apellidos.toUpperCase());
-          formDataKid.append("edad", kid.edad.toString());
-          formDataKid.append("foto", kid.foto_kid? kid.foto_kid[0] as File : "foto.jpg");
-          formDataKid.append("id_aplicante", id_aplicante);
-            
-          const result_kid =  await POSTData(formDataKid);
-
-        });     
-        
-        await Promise.all(promises);
-      }
-    } catch (e) {
-      console.error("Error parsing form", e );
-    }
-  }
-
 
   useEffect(() => {
     if (!haveKids) {

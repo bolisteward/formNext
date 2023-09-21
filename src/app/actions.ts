@@ -1,131 +1,120 @@
 //"use server";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { IFormInput } from "@typesApp/index";
 
-import fs from "fs";
-import path from "path";
-import { writeFile } from "fs/promises";
-import { FormDataAplicante, formDataFamiliar } from "@typesApp/index";
-
-const saveFile = async (file: File, lastname: string, id:string) => {
-  if (!file) {
-    throw new Error("No files received.");
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const date = new Date(Date.now()).toISOString().split("T")[0];
-  const filename =
-    Date.now() +
-    "-" +
-    lastname.replaceAll(" ", "_") + "-" +id +
-    path.extname(file.name).toLowerCase();
-
-  try {
-    const directoryPath = path.join(process.cwd(), "public/uploads/" + date);
-    if (!fs.existsSync(directoryPath)) {
-      fs.mkdirSync(directoryPath, { recursive: true });
-    }
-    await writeFile(
-      path.join(process.cwd(), `public/uploads/${date}/${filename}`),
-      buffer
-    );
-    return date + "/" + filename;
-  } catch (error) {
-    throw error;
-  }
-};
-
-const createJSONdata = (
-  typePerson: string,
-  formData: FormData,
-  urlIMG: string
+export const onSubmit: SubmitHandler<IFormInput> = async (
+  data: IFormInput
 ) => {
-  if (typePerson === "aplicante") {
-    const formDataObject: FormDataAplicante = {
-      action: "aplicante",
-      registration_date: urlIMG.split("/")[0],
-      names: formData.get("nombres") as string,
-      surnames: formData.get("apellidos") as string,
-      sexo: formData.get("sexo") as string,
-      birth_date: formData.get("fecha_nacimiento") as string,
-      birth_city: formData.get("ciudad_nacimiento") as string,
-      birth_country: formData.get("pais_nacimiento") as string,
-      residence_country: formData.get("pais_residencia") as string,
-      civil_status: formData.get("estado_civil") as string,
-      children: formData.get("children") as string,
-      phone: formData.get("phone") as string,
-      email: formData.get("email") as string,
-      address: formData.get("address") as string,
-      passport: formData.get("passport") as string,
-      passport_emision: formData.get("passport_emision") as string,
-      passport_expiration: formData.get("passport_expiration") as string,
-      education: formData.get("education") as string,
-      foto_url: urlIMG as string,
-    };
-
-    return JSON.stringify(formDataObject);
-  }else  if (typePerson === "conyugue") {
-    const formDataObject: formDataFamiliar = {
-      action: "conyugue",
-      registration_date: urlIMG.split("/")[0],
-      names: formData.get("nombres") as string,
-      surnames: formData.get("apellidos") as string,
-      passport: formData.get("passport") as string,
-      passport_emision: formData.get("passport_emision") as string,
-      passport_expiration: formData.get("passport_expiration") as string,
-      id_aplicante: formData.get("id_aplicante") as string,
-      foto_url: urlIMG as string,
-    };
-    return JSON.stringify(formDataObject);
-  }
-
-  else if (typePerson === "kid") {
-    const formDataObject: formDataFamiliar = {
-      action: "kid",
-      registration_date: urlIMG.split("/")[0],
-      names: formData.get("nombres") as string,
-      surnames: formData.get("apellidos") as string,  
-      edad: formData.get("edad") as string,  
-      id_aplicante: formData.get("id_aplicante") as string,
-      foto_url: urlIMG as string,
-    };  
-    return JSON.stringify(formDataObject);
-  } 
-  else{
-    throw new Error("Incorrect format data!");
-    
-  } 
-};
-
-export async function POSTData(dataAplicante: FormData) {
   try {
-    const urlIMG = await saveFile(
-      dataAplicante.get("foto") as File,
-      dataAplicante.get("apellidos")?.toString()!,
-      dataAplicante.get("id_aplicante")? dataAplicante.get("id_aplicante")?.toString()! : ""
+    const formDataAplicante = new FormData();
+    formDataAplicante.append(
+      "nombres",
+      `${data.first_name.toUpperCase()} ${data.second_name.toUpperCase()}`
     );
-
-    const jsondata = createJSONdata(dataAplicante.get("action") as string, dataAplicante, urlIMG);
-
-    const response = await fetch("https://form.visaglobal.com.ec/register/", {
+    formDataAplicante.append("apellidos", data.apellidos.toUpperCase());
+    formDataAplicante.append("sexo", data.sexo);
+    formDataAplicante.append(
+      "fecha_nacimiento",
+      data.fecha_nacimiento.toString()
+    );
+    formDataAplicante.append("ciudad_nacimiento", data.ciudad_nacimiento);
+    formDataAplicante.append("pais_nacimiento", data.pais_nacimiento);
+    formDataAplicante.append("pais_residencia", data.pais_residencia);
+    formDataAplicante.append("estado_civil", data.estado_civil);
+    formDataAplicante.append("children", data.children.length.toString());
+    formDataAplicante.append("phone", data.phone);
+    formDataAplicante.append("email", data.email);
+    formDataAplicante.append("address", data.direccion);
+    formDataAplicante.append("passport", data.passport);
+    formDataAplicante.append(
+      "passport_emision",
+      data.passport_emision.toString()
+    );
+    formDataAplicante.append(
+      "passport_expiration",
+      data.passport_expiration.toString()
+    );
+    formDataAplicante.append("education", data.education);
+    formDataAplicante.append("foto", data.foto_aplicante[0] as File);
+    
+    const aplicante_res = await fetch("/api/aplicante", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json", // Establecer el tipo de contenido a JSON
-      },
-      body: jsondata,
+      body: formDataAplicante,
     });
 
-    if (!response.ok) {
-      console.error("Error en la solicitud:", response.status);
-      throw new Error("Error en la solicitud");
+    if (!aplicante_res.ok) {
+      throw new Error("No se pudo obtener la respuesta de la API");
+    } 
+    
+    console.log(aplicante_res);
+    
+    const { mensaje_ap, id_aplicante } = await aplicante_res.json();
+
+    if (data.estado_civil === "casado") {
+      const formDataConyugue = new FormData();
+      formDataConyugue.append(
+        "nombres",
+        `${data.first_name_conyugue.toUpperCase()} ${data.second_name_conyugue.toUpperCase()}`
+      );
+      formDataConyugue.append(
+        "apellidos",
+        data.apellidos_conyugue.toUpperCase()
+      );
+      formDataConyugue.append("passport", data.passport_conyugue);
+      formDataConyugue.append(
+        "passport_emision",
+        data.passport_emision_conyugue.toString()
+      );
+      formDataConyugue.append(
+        "passport_expiration",
+        data.passport_expiration_conyugue.toString()
+      );
+      formDataConyugue.append("foto", data.foto_conyugue[0] as File);
+      formDataConyugue.append("id_aplicante", id_aplicante);
+
+      const conyugue_res = await fetch("/api/familiar", {
+        method: "POST",
+        body: formDataConyugue,
+      });
+
+      if (!conyugue_res.ok) {
+        throw new Error("No se pudo obtener la respuesta de la API");
+      }
     }
 
-    const data = await response.json();
+    if (data.children.length > 0) {
 
-    return {
-      mensaje_ap: data.mensaje,
-      id_aplicante: data.id,
-    };
-  } catch (e) {
-    throw new Error("Internal Server Error");
+      const promises = data.children.map(async (kid, index) => {
+        const formDataKid = new FormData();
+        formDataKid.append(
+          "nombres",
+          `${kid.first_name.toUpperCase()} ${kid.second_name.toUpperCase()}`
+        );
+        formDataKid.append("apellidos", kid.apellidos.toUpperCase());
+        formDataKid.append("edad", kid.edad.toString());
+        formDataKid.append("foto", kid.foto_kid? kid.foto_kid[0] as File : "foto.jpg");
+        formDataKid.append("id_aplicante", id_aplicante);
+          
+        const kid_res = await fetch("/api/familiar", {
+          method: "POST",
+          body: formDataKid,
+        });
+
+        if (!kid_res.ok) {
+          // Puedes personalizar el mensaje de error según tus necesidades
+          throw new Error(`Error al procesar el niñ@ ${kid.first_name}`);
+        }
+
+        return kid_res; 
+      });
+      
+      await Promise.all(promises);
+    }
+
+    alert("Enviado exitosamente!. Nos contactaremos mediante el número telefónico del aplicante.");
+
+  } catch (error) {
+    alert("Error while sending form, please try one more time!");
+    console.error("Error al llamar a la API:", error);
   }
-}
-
+};
