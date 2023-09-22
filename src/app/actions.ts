@@ -1,43 +1,50 @@
 //"use server";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { SubmitHandler } from "react-hook-form";
 import {
-  FormDataAplicante,
-  IFormInput,
-  formDataFamiliar,
+  IFormInput,  
 } from "@typesApp/index";
 
 export const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
   try {
-    const formDataAplicante: FormDataAplicante = {
-      action: "aplicante",
-      registration_date: "2023-09-20", //urlIMG.split("/")[0],
-      names: `${data.first_name.toUpperCase()} ${data.second_name.toUpperCase()}`,
-      surnames: data.apellidos.toUpperCase(),
-      sexo: data.sexo,
-      birth_date: data.fecha_nacimiento.toString(),
-      birth_city: data.ciudad_nacimiento,
-      birth_country: data.pais_nacimiento,
-      residence_country: data.pais_residencia,
-      civil_status: data.estado_civil,
-      children: data.children.length.toString(),
-      phone: data.phone,
-      email: data.email,
-      address: data.direccion,
-      passport: data.passport,
-      passport_emision: data.passport_emision.toString(),
-      passport_expiration: data.passport_expiration.toString(),
-      education: data.education,
-      foto_url: "url",
-    };
+    const date = new Date(Date.now()).toISOString().split("T")[0];
+
+    const formDataAplicante = new FormData();
+
+    formDataAplicante.append("action", "aplicante");
+    formDataAplicante.append("registration_date", date);
+    formDataAplicante.append(
+      "names",
+      `${data.first_name.toUpperCase()} ${data.second_name.toUpperCase()}`
+    );
+    formDataAplicante.append("surnames", data.apellidos.toUpperCase());
+    formDataAplicante.append("sexo", data.sexo);
+    formDataAplicante.append("birth_date", data.fecha_nacimiento.toString());
+    formDataAplicante.append("birth_city", data.ciudad_nacimiento.toUpperCase());
+    formDataAplicante.append("birth_country", data.pais_nacimiento.toUpperCase());
+    formDataAplicante.append("residence_country", data.pais_residencia.toUpperCase());
+
+    formDataAplicante.append("civil_status", data.estado_civil);
+    formDataAplicante.append("children", data.children.length.toString());
+    formDataAplicante.append("phone", data.phone);
+    formDataAplicante.append("email", data.email);
+    formDataAplicante.append("address", data.direccion);
+    formDataAplicante.append("passport", data.passport);
+    formDataAplicante.append(
+      "passport_emision",
+      data.passport_emision.toString()
+    );
+    formDataAplicante.append(
+      "passport_expiration",
+      data.passport_expiration.toString()
+    );
+    formDataAplicante.append("education", data.education);
+    formDataAplicante.append("foto", data.foto_aplicante[0] as File);
 
     const aplicante_res = await fetch(
       "https://form.visaglobal.com.ec/register/",
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Establecer el tipo de contenido a JSON
-        },
-        body: JSON.stringify(formDataAplicante),
+        method: "POST", 
+        body: formDataAplicante,
       }
     );
 
@@ -50,26 +57,35 @@ export const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
     console.log(aplicante_data.id);
 
     if (data.estado_civil === "casado") {
-      const formDataConyugue: formDataFamiliar = {
-        action: "conyugue",
-        registration_date: "2023-09-20",
-        names: `${data.first_name_conyugue.toUpperCase()} ${data.second_name_conyugue.toUpperCase()}`,
-        surnames: data.apellidos_conyugue.toUpperCase(),
-        passport: data.passport_conyugue,
-        passport_emision: data.passport_emision_conyugue.toString(),
-        passport_expiration: data.passport_expiration_conyugue.toString(),
-        id_aplicante: aplicante_data.id,
-        foto_url: "upload",
-      };
+      const formDataConyugue = new FormData();
+      formDataConyugue.append("action", "conyugue");
+      formDataConyugue.append("registration_date", date);
+
+      formDataConyugue.append(
+        "names",
+        `${data.first_name_conyugue.toUpperCase()} ${data.second_name_conyugue.toUpperCase()}`
+      );
+      formDataConyugue.append(
+        "surnames",
+        data.apellidos_conyugue.toUpperCase()
+      );
+      formDataConyugue.append("passport", data.passport_conyugue);
+      formDataConyugue.append(
+        "passport_emision",
+        data.passport_emision_conyugue.toString()
+      );
+      formDataConyugue.append(
+        "passport_expiration",
+        data.passport_expiration_conyugue.toString()
+      );
+      formDataConyugue.append("id_aplicante", aplicante_data.id);
+      formDataConyugue.append("foto", data.foto_conyugue[0] as File);
 
       const conyugue_res = await fetch(
         "https://form.visaglobal.com.ec/register/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Establecer el tipo de contenido a JSON
-          },
-          body: JSON.stringify(formDataConyugue),
+          body: formDataConyugue,
         }
       );
 
@@ -80,30 +96,32 @@ export const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
 
     if (data.children.length > 0) {
       const promises = data.children.map(async (kid, index) => {
+        const formDataKid = new FormData();
+        formDataKid.append("action", "kid");
+        formDataKid.append("registration_date", date);
+        formDataKid.append(
+          "names",
+          `${kid.first_name.toUpperCase()} ${kid.second_name.toUpperCase()}`
+        );
+        formDataKid.append("surnames", kid.apellidos.toUpperCase());
+        formDataKid.append("edad", kid.edad.toString());
+        formDataKid.append("id_aplicante", aplicante_data.id);
 
-        const formDataKid: formDataFamiliar = {
-          action: "kid",
-          registration_date: "2023-09-20",
-          names: `${kid.first_name.toUpperCase()} ${kid.second_name.toUpperCase()}`,
-          surnames: kid.apellidos.toUpperCase(),  
-          edad:  kid.edad.toString(),  
-          id_aplicante: aplicante_data.id,
-          foto_url: "upload"//kid.foto_kid[0] as File,
-        }; 
+        if (kid.foto_kid && kid.foto_kid.length > 0) {
+          formDataKid.append("foto", kid.foto_kid[0] as File);
+        } else {
+          throw new Error(`Error loading photo of niñ@ ${kid.first_name}`);
+        }
 
         const kid_res = await fetch(
           "https://form.visaglobal.com.ec/register/",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json", // Establecer el tipo de contenido a JSON
-            },
-            body: JSON.stringify(formDataKid),
+            body: formDataKid,
           }
         );
 
         if (!kid_res.ok) {
-          // Puedes personalizar el mensaje de error según tus necesidades
           throw new Error(`Error al procesar el niñ@ ${kid.first_name}`);
         }
 
