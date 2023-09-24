@@ -6,6 +6,7 @@ import {
 
 export const onSubmit: SubmitHandler<IFormInput> = async (data: IFormInput) => {
   try {
+    console.log(data);
     const date = new Date(Date.now()).toISOString().split("T")[0];
 
     const formDataAplicante = new FormData();

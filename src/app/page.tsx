@@ -1,5 +1,4 @@
 "use client";
-import "./globals.css";
 import {
   Divider,
   Input,
@@ -643,7 +642,7 @@ export default function Page() {
                       <SelectItem value={"universidad"} key="universidad">
                         {"Universidad"}
                       </SelectItem>
-                      <SelectItem value={"universidad_st"} key="universidad_st">
+                      <SelectItem value={"universidad sin titulo"} key="universidad_st">
                         {"Universidad (sin título)"}
                       </SelectItem>
                       <SelectItem value={"maestria"} key="maestria">
