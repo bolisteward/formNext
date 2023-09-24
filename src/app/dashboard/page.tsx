@@ -11,10 +11,9 @@ import {
 } from "@nextui-org/react";
 
 import Image from "next/image";
-import { SubmitHandler, useFieldArray, useForm, useWatch } from "react-hook-form";
-//import { onSubmit } from "./actions";
-import { IFormSearch, Kid, KidSearch, NivelEducacion } from "@typesApp/index";
-import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { IFormSearch, KidSearch, NivelEducacion } from "@typesApp/index";
+import { useState } from "react";
 import { Man, Woman } from "@styled-icons/ionicons-solid";
 
 import "react-phone-number-input/style.css";
@@ -29,15 +28,9 @@ export default function Page() {
   const {
     register,
     handleSubmit,
-    control,
     setValue,
-    getValues,
     formState: { isSubmitting },
   } = useForm<IFormSearch>();
-
-  const [createObjectURLs, setCreateObjectURLs] = useState<
-    Record<string, string | null>
-  >({});
 
   const [sexo, setSexo] = useState<string | null>(null);
   const [estadoCivil, setEstadoCivil] = useState<string | null>(null);
@@ -137,7 +130,7 @@ export default function Page() {
       <div className="flex absolute w-full h-full opacity-70 bg-gradient-to-r from-blue-200 via-sky-800 to-sky-200 "></div>
 
       <div
-        id="Page1"
+        id="Page2"
         className="flex relative flex-col z-0 md:w-3/4 w-5/6 items-center"
       >
         <div
@@ -158,7 +151,7 @@ export default function Page() {
         >
           <div className="flex absolute -z-30 w-full h-full bg-white border-2 border-primary/70 rounded-medium"></div>
 
-          <div className="flex flex-col text-primary">
+          <div className="flex flex-col text-primary w-full">
             <div className="mb-4">
               <h1 className="text-2xl md:text-4xl flex w-full h-auto justify-center my-5 md:my-10 ">
                 Visa Form
