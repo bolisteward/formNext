@@ -254,7 +254,7 @@ export default function Page() {
 
           <div className="flex flex-col text-primary">
             <div className="mb-4">
-              <h1 className="text-2xl p-4 text-justify md:text-4xl flex w-full h-auto justify-center my-5 md:my-10 ">
+              <h1 className="text-2xl p-4 text-center md:text-4xl flex w-full h-auto justify-center my-5 md:my-10 ">
                 LOTERIA DE VISAS - VISA FORM
               </h1>
               <Divider className="my-2 md:my-5 bg-primary" />
