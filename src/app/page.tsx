@@ -39,7 +39,8 @@ export default function Page() {
     control,
     setValue,
     getValues,
-    formState: { isSubmitting },
+    reset,
+    formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<IFormInput>({
     defaultValues: {
       children: [
@@ -64,6 +65,7 @@ export default function Page() {
   const [estadoCivil, setEstadoCivil] = useState<string | null>(null);
   const [haveKids, setHaveKids] = useState<boolean>(false);
   const [acceptPolitics, setAcceptPolitics] = useState<boolean>(false);
+  const [closePage, setClosePage] = useState<boolean>(false);
   const [typeWarning, setTypeWarning] = useState<"politics" | "warning">(
     "politics"
   );
@@ -75,7 +77,7 @@ export default function Page() {
   const labelsStyle = "text-primary font-bold text-sm md:text-medium";
   const inputStyle =
     "bg-transparent text-primary/90 text-sm md:text-medium placeholder:text-primary/50 ";
-  const componentStyle = "p-2 md:p-4"
+  const componentStyle = "p-2 md:p-4";
 
   const validateEmail = (value: string) =>
     value.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/);
@@ -93,6 +95,31 @@ export default function Page() {
 
       if (photofile[0].size > maxSize) {
         setTypeWarning("warning");
+        switch (typePerson) {
+          case "aplicante":
+            setValue("foto_aplicante", null);
+            break;
+          case "aplicanteID":
+            setValue("foto_aplicante_id", null);
+            break;
+          case "conyugue":
+            setValue("foto_conyugue", null);
+            break;
+          case "conyugueID":
+            setValue("foto_conyugue_id", null);
+            break;
+          case "kid":
+            setValue(`children.${index}.foto_kid`, null);
+
+            break;
+          case "kidID":
+            setValue(`children.${index}.foto_kid_id`, null);
+            break;
+
+          default:
+            break;
+        }
+
         onOpen();
         return;
       }
@@ -104,18 +131,37 @@ export default function Page() {
             ["aplicante"]: URL.createObjectURL(photofile[0]),
           }));
           break;
+        case "aplicanteID":
+          setCreateObjectURLs((prevURLs) => ({
+            ...prevURLs,
+            ["aplicanteID"]: URL.createObjectURL(photofile[0]),
+          }));
+          break;
         case "conyugue":
           setCreateObjectURLs((prevURLs) => ({
             ...prevURLs,
             ["conyugue"]: URL.createObjectURL(photofile[0]),
           }));
           break;
+        case "conyugueID":
+          setCreateObjectURLs((prevURLs) => ({
+            ...prevURLs,
+            ["conyugueID"]: URL.createObjectURL(photofile[0]),
+          }));
+          break;
 
         case "kid":
-          setValue(`children.${index}.foto_kid`, photofile);
+          //setValue(`children.${index}.foto_kid`, photofile);
           setCreateObjectURLs((prevURLs) => ({
             ...prevURLs,
             [`kid_${index}`]: URL.createObjectURL(photofile[0]),
+          }));
+          break;
+        case "kidID":
+          //setValue(`children.${index}.foto_kid_id`, photofile);
+          setCreateObjectURLs((prevURLs) => ({
+            ...prevURLs,
+            [`kidID_${index}`]: URL.createObjectURL(photofile[0]),
           }));
           break;
 
@@ -133,7 +179,7 @@ export default function Page() {
 
   const passportCo = useWatch({
     control,
-    name: "passport",
+    name: "passport_conyugue",
     defaultValue: "&",
   });
 
@@ -167,13 +213,27 @@ export default function Page() {
     }
   }, [haveKids, remove]);
 
+  useEffect(() => {
+    if (isSubmitSuccessful) onOpen();
+  }, [isSubmitSuccessful]);
+
+  useEffect(() => {
+    if (closePage) {
+      reset();
+      window.close();
+    }
+  }, [closePage]);
+
   return (
     <div
       id="in_body"
       className="flex relative w-full h-fit bg-background justify-center overflow-x-hidden"
     >
       <div className="flex absolute w-screen h-full opacity-70 bg-gradient-to-r from-blue-200 via-sky-800 to-sky-200 "></div>
-      <div id="Page1" className="flex relative flex-col z-0 md:w-3/4 w-5/6 items-center">
+      <div
+        id="Page1"
+        className="flex relative flex-col z-0 md:w-3/4 w-5/6 items-center"
+      >
         <div
           id="logo"
           className="flex z-10  relative my-unit-md w-full aspect-w-4 md:aspect-w-6  aspect-h-1 "
@@ -194,8 +254,8 @@ export default function Page() {
 
           <div className="flex flex-col text-primary">
             <div className="mb-4">
-              <h1 className="text-2xl md:text-4xl flex w-full h-auto justify-center my-5 md:my-10 ">
-                Visa Form
+              <h1 className="text-2xl p-4 text-justify md:text-4xl flex w-full h-auto justify-center my-5 md:my-10 ">
+                LOTERIA DE VISAS - VISA FORM
               </h1>
               <Divider className="my-2 md:my-5 bg-primary" />
               <p className="m-unit-md text-justify px-3 md:px-8">
@@ -210,15 +270,21 @@ export default function Page() {
                 onSubmit={handleSubmit(onSubmit)}
                 className="grid grid-cols-1 gap-5  "
               >
+                <h1 className="text-2xl md:text-4xl">Aplicante</h1>
+
                 <div
                   id="nombres_completos"
                   className="grid grid-flow-row md:grid-cols-3 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className="md:col-span-3 border-b-2 border-primary/50 p-2 md:p-4">
+                  <div
+                    className={`md:col-span-3 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Nombres completos</h1>
                   </div>
 
-                  <div className="p-2 md:p-4 md:col-span-3 text-sm md:text-medium font-normal ">
+                  <div
+                    className={`md:col-span-3 text-sm md:text-medium font-normal ${componentStyle}`}
+                  >
                     Nota: Colocar nombres y apellidos como se muestran en su
                     documento de identidad.
                   </div>
@@ -274,9 +340,11 @@ export default function Page() {
 
                 <div
                   id="genero"
-                  className="grid grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                  className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Género</h1>
                   </div>
                   <div className={componentStyle}>
@@ -291,7 +359,11 @@ export default function Page() {
                         label: labelsStyle,
                       }}
                     >
-                      <Radio value={"hombre"} key="hombre" className="mt-2 md:mr-4 ">
+                      <Radio
+                        value={"hombre"}
+                        key="hombre"
+                        className="mt-2 md:mr-4 "
+                      >
                         <div
                           className={`flex flex-row flex-nowrap items-center text-sm md:text-medium ${
                             sexo === "hombre" && "text-primary"
@@ -301,7 +373,11 @@ export default function Page() {
                           <span>Masculino</span>
                         </div>
                       </Radio>
-                      <Radio value={"mujer"} key="mujer" className="mt-2 md:mr-4 ">
+                      <Radio
+                        value={"mujer"}
+                        key="mujer"
+                        className="mt-2 md:mr-4 "
+                      >
                         <div
                           className={`flex flex-row flex-nowrap items-center text-sm md:text-medium ${
                             sexo === "mujer" && "text-pink-400"
@@ -319,10 +395,14 @@ export default function Page() {
                   id="estado_civil"
                   className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Estado civil</h1>
                   </div>
-                  <div className={`md:col-span-2 text-sm md:text-medium font-normal ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 text-sm md:text-medium font-normal ${componentStyle}`}
+                  >
                     <ol className="list-disc list-inside">
                       <li className="mb-4">
                         Pasajeros en unión libre - unión de hecho/concubinato no
@@ -380,7 +460,7 @@ export default function Page() {
                   </div>
 
                   <div className={componentStyle}>
-                    <div className="col-span-2 text-sm md:text-medium mb-3">
+                    <div className="text-sm md:text-medium mb-3">
                       <h3 className="after:content-['*'] after:text-danger after:ml-0.5">
                         Tiene hijos?
                       </h3>
@@ -395,9 +475,11 @@ export default function Page() {
 
                 <div
                   id="fecha_nac"
-                  className="grid grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                  className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Fecha de nacimiento</h1>
                   </div>
                   <div className={componentStyle}>
@@ -412,7 +494,7 @@ export default function Page() {
                       placeholder="mm/dd/yyyy"
                       classNames={{
                         label: labelsStyle,
-                        input: inputStyle
+                        input: inputStyle,
                       }}
                     />
                   </div>
@@ -422,7 +504,9 @@ export default function Page() {
                   id="lugar_nac"
                   className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Lugar de nacimiento</h1>
                   </div>
 
@@ -437,7 +521,7 @@ export default function Page() {
                       labelPlacement="outside"
                       placeholder="Ciudad"
                       classNames={{
-                        label:labelsStyle,
+                        label: labelsStyle,
                         input: inputStyle,
                       }}
                     />
@@ -453,12 +537,12 @@ export default function Page() {
                       labelPlacement="outside"
                       placeholder="Pais"
                       classNames={{
-                        label:labelsStyle,
+                        label: labelsStyle,
                         input: inputStyle,
                       }}
                     />
                   </div>
-                  
+
                   <div className={componentStyle}>
                     <Input
                       size="lg"
@@ -470,7 +554,7 @@ export default function Page() {
                       labelPlacement="outside"
                       placeholder="Pais"
                       classNames={{
-                        label:labelsStyle,
+                        label: labelsStyle,
                         input: inputStyle,
                       }}
                     />
@@ -487,7 +571,7 @@ export default function Page() {
                       variant="underlined"
                       labelPlacement="outside"
                       classNames={{
-                        label:labelsStyle,
+                        label: labelsStyle,
                         input: inputStyle,
                       }}
                     />
@@ -498,7 +582,9 @@ export default function Page() {
                   id="contacto"
                   className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Contacto</h1>
                   </div>
                   <div className={componentStyle}>
@@ -546,7 +632,9 @@ export default function Page() {
                   id="identidad"
                   className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Documento de identidad</h1>
                   </div>
                   <div className={`md:col-span-2 ${componentStyle}`}>
@@ -608,11 +696,15 @@ export default function Page() {
                   id="educacion"
                   className="grid grid-cols-1 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`border-b-2 border-primary/50 ${componentStyle}`}>
+                  <div
+                    className={`border-b-2 border-primary/50 ${componentStyle}`}
+                  >
                     <h1>Educación</h1>
                   </div>
 
-                  <div className={`text-sm md:text-medium font-normal ${componentStyle}`}>
+                  <div
+                    className={`text-sm md:text-medium font-normal ${componentStyle}`}
+                  >
                     <p>
                       Debe tener un mínimo de titulo de educación secundaria
                       culminado (escuela de vocacion o equivalente) ó demostrar
@@ -630,7 +722,7 @@ export default function Page() {
                       variant="underlined"
                       className="max-w-xs"
                       classNames={{
-                        label: labelsStyle,                        
+                        label: labelsStyle,
                       }}
                     >
                       <SelectItem value={"primaria"} key="primaria">
@@ -642,7 +734,10 @@ export default function Page() {
                       <SelectItem value={"universidad"} key="universidad">
                         {"Universidad"}
                       </SelectItem>
-                      <SelectItem value={"universidad sin titulo"} key="universidad_st">
+                      <SelectItem
+                        value={"universidad sin titulo"}
+                        key="universidad_st"
+                      >
                         {"Universidad (sin título)"}
                       </SelectItem>
                       <SelectItem value={"maestria"} key="maestria">
@@ -656,261 +751,284 @@ export default function Page() {
                 </div>
 
                 {estadoCivil === "casado" && (
-                  <div
-                    id="nombres_completos_conyugue"
-                    className="grid grid-flow-row md:grid-cols-3 gap-3 border-2 border-primary/50 rounded-lg pb-4"
-                  >
-                    <div className={`md:col-span-3 border-b-2 border-primary/50 ${componentStyle}`}>
-                      <h1>Datos del conyugue</h1>
-                    </div>
+                  <>
+                    <h1 className="text-2xl md:text-4xl">Conyugue</h1>
 
-                    <div className={`md:col-span-3 text-sm md:text-medium font-normal ${componentStyle}`}>
-                      Nota: Colocar nombres y apellidos como se muestran en su
-                      documento de identidad.
-                    </div>
-                    <div className={componentStyle}>
-                      <Input
-                        type="text"
-                        size="lg"
-                        isRequired
-                        variant="underlined"
-                        label="Primer nombre"
-                        {...register("first_name_conyugue")}
-                        labelPlacement="outside"
-                        placeholder="MARIA"
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle,
-                        }}
-                      />
-                    </div>
-                    <div className={componentStyle}>
-                      <Input
-                        type="text"
-                        size="lg"
-                        isRequired
-                        variant="underlined"
-                        label="Segundo nombre"
-                        {...register("second_name_conyugue")}
-                        labelPlacement="outside"
-                        placeholder="CARLA"
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle,
-                        }}
-                      />
-                    </div>
-                    <div className={componentStyle}>
-                      <Input
-                        size="lg"
-                        type="text"
-                        isRequired
-                        variant="underlined"
-                        {...register("apellidos_conyugue")}
-                        label="Apellidos"
-                        labelPlacement="outside"
-                        placeholder="VERA MOREIRA"
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle,
-                        }}
-                      />
-                    </div>
+                    <div
+                      id="nombres_completos_conyugue"
+                      className="grid grid-flow-row md:grid-cols-3 gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                    >
+                      <div
+                        className={`md:col-span-3 border-b-2 border-primary/50 ${componentStyle}`}
+                      >
+                        <h1>Datos del conyugue</h1>
+                      </div>
 
-                    <div className={`${componentStyle} md:col-end-2`}>
-                      <Input
-                        type="number"
-                        label="No. Pasaporte/ID"
-                        isRequired
-                        {...register("passport_conyugue")}
-                        placeholder="xxxxxxxxxx"
-                        variant="underlined"
-                        labelPlacement="outside"
-                        isInvalid={isInvalidPassportCo}
-                        color={isInvalidPassportCo ? "danger" : "success"}
-                        errorMessage={
-                          isInvalidPassportCo &&
-                          "Please enter a valid passport number"
-                        }
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle,
-                        }}
-                      />
+                      <div
+                        className={`md:col-span-3 text-sm md:text-medium font-normal ${componentStyle}`}
+                      >
+                        Nota: Colocar nombres y apellidos como se muestran en su
+                        documento de identidad.
+                      </div>
+                      <div className={componentStyle}>
+                        <Input
+                          type="text"
+                          size="lg"
+                          isRequired
+                          variant="underlined"
+                          label="Primer nombre"
+                          {...register("first_name_conyugue")}
+                          labelPlacement="outside"
+                          placeholder="MARIA"
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
+                      <div className={componentStyle}>
+                        <Input
+                          type="text"
+                          size="lg"
+                          isRequired
+                          variant="underlined"
+                          label="Segundo nombre"
+                          {...register("second_name_conyugue")}
+                          labelPlacement="outside"
+                          placeholder="CARLA"
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
+                      <div className={componentStyle}>
+                        <Input
+                          size="lg"
+                          type="text"
+                          isRequired
+                          variant="underlined"
+                          {...register("apellidos_conyugue")}
+                          label="Apellidos"
+                          labelPlacement="outside"
+                          placeholder="VERA MOREIRA"
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
+
+                      <div className={`${componentStyle} md:col-end-2`}>
+                        <Input
+                          type="text"
+                          label="No. Pasaporte/ID"
+                          isRequired
+                          {...register("passport_conyugue", {
+                            pattern: /^\d{10}$/,
+                          })}
+                          placeholder="xxxxxxxxxx"
+                          variant="underlined"
+                          labelPlacement="outside"
+                          isInvalid={isInvalidPassportCo}
+                          color={isInvalidPassportCo ? "danger" : "success"}
+                          errorMessage={
+                            isInvalidPassportCo &&
+                            "Please enter a valid passport number"
+                          }
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
+                      <div className={`col-start-1 ${componentStyle}`}>
+                        <Input
+                          type="date"
+                          label="Fecha de emisión"
+                          isRequired
+                          {...register("passport_emision_conyugue")}
+                          placeholder="mm/dd/yyyy"
+                          variant="underlined"
+                          labelPlacement="outside"
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
+                      <div className={componentStyle}>
+                        <Input
+                          type="date"
+                          label="Fecha de expiración"
+                          isRequired
+                          {...register("passport_expiration_conyugue")}
+                          placeholder="mm/dd/yyyy"
+                          variant="underlined"
+                          labelPlacement="outside"
+                          classNames={{
+                            label: labelsStyle,
+                            input: inputStyle,
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className={`col-start-1 ${componentStyle}`}>
-                      <Input
-                        type="date"
-                        label="Fecha de emisión"
-                        isRequired
-                        {...register("passport_emision_conyugue")}
-                        placeholder="mm/dd/yyyy"
-                        variant="underlined"
-                        labelPlacement="outside"
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle
-                        }}
-                      />
-                    </div>
-                    <div className={componentStyle}>
-                      <Input
-                        type="date"
-                        label="Fecha de expiración"
-                        isRequired
-                        {...register("passport_expiration_conyugue")}
-                        placeholder="mm/dd/yyyy"
-                        variant="underlined"
-                        labelPlacement="outside"
-                        classNames={{
-                          label: labelsStyle,
-                          input: inputStyle
-                        }}
-                      />
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {haveKids && (
-                  <div
-                    id="datos_hijos"
-                    className="flex flex-col flex-nowrap gap-3 border-2 border-primary/50 rounded-lg pb-4"
-                  >
-                    <div className={`border-b-2 border-primary/50 ${componentStyle}`}>
-                      <h1>Datos de sus hijos</h1>
-                    </div>
+                  <>
+                    <h1 className="text-2xl md:text-4xl">Conyugue</h1>
 
-                    <div className={`text-sm md:text-medium font-normal ${componentStyle}`}>
-                      <p>
-                        <span className="text-warning">Importante!</span> Debe
-                        incluir a todos sus hijos biologicos, adoptados,
-                        hijastros/as solteros menores a 21 años a partir del dia
-                        del registro de esta aplicacion. Debe incluir hijos que
-                        viven y que no viven con usted, ademas hijos que aun
-                        despues de ser acreedores a la loteria no deseen viajar
-                        a los Estados Unidos con usted.
-                      </p>
-                      <p className="my-4">
-                        Dar click en el botón{" "}
-                        <span>
-                          <PersonAdd className="h-5 aspect-w-1" />
-                        </span>{" "}
-                        para agregar otro hij@.
-                      </p>
-                    </div>
-
-                    {fields.map((field, index) => {
-                      return (
-                        <>
-                          <div
-                            key={field.id}
-                            className={`grid grid-flow-row md:grid-cols-4 gap-5 ${componentStyle}`}
-                          >
-                            <div className="md:col-span-2">
-                              <Input
-                                type="text"
-                                size="lg"
-                                isRequired
-                                variant="underlined"
-                                label="Primer nombre"
-                                {...register(
-                                  `children.${index}.first_name` as const
-                                )}
-                                labelPlacement="outside"
-                                placeholder="JORGE"
-                                classNames={{
-                                  label: labelsStyle,
-                                  input: inputStyle,
-                                }}
-                              />
-                            </div>
-                            <div className="md:col-span-2">
-                              <Input
-                                type="text"
-                                size="lg"
-                                isRequired
-                                variant="underlined"
-                                label="Segundo nombre"
-                                {...register(
-                                  `children.${index}.second_name` as const
-                                )}
-                                labelPlacement="outside"
-                                placeholder="CARLOS"
-                                classNames={{
-                                  label: labelsStyle,
-                                  input: inputStyle,
-                                }}
-                              />
-                            </div>
-
-                            <div className="md:col-span-2">
-                              <Input
-                                size="lg"
-                                type="text"
-                                isRequired
-                                variant="underlined"
-                                {...register(
-                                  `children.${index}.apellidos` as const
-                                )}
-                                label="Apellidos"
-                                labelPlacement="outside"
-                                placeholder="CRUZ TAPIA"
-                                classNames={{
-                                  label: labelsStyle,
-                                  input: inputStyle,
-                                }}
-                              />
-                            </div>
-                            <Input
-                              size="lg"
-                              type="number"
-                              isRequired
-                              variant="underlined"
-                              {...register(`children.${index}.edad` as const)}
-                              label="Edad"
-                              labelPlacement="outside"
-                              placeholder="5 años"
-                              classNames={{
-                                label: labelsStyle,
-                                input: inputStyle,
-                              }}
-                            />
-                            <button onClick={() => remove(index)}>
-                              <PersonDelete className="h-8 md:h-10 aspect-w-1" />
-                            </button>
-                          </div>
-                          <Divider className="mb-4" />
-                        </>
-                      );
-                    })}
-
-                    <div className={`text-sm md:text-medium flex relative justify-center ${componentStyle}`}>
-                      <button
-                        color="primary"
-                        onClick={() =>
-                          append({
-                            first_name: "nombre",
-                            second_name: "nombre",
-                            apellidos: "apellido",
-                            edad: 6,
-                          })
-                        }
+                    <div
+                      id="datos_hijos"
+                      className="flex flex-col flex-nowrap gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                    >
+                      <div
+                        className={`border-b-2 border-primary/50 ${componentStyle}`}
                       >
-                        <PersonAdd className="h-12 aspect-w-1" />
-                      </button>
+                        <h1>Datos</h1>
+                      </div>
+
+                      <div
+                        className={`text-sm md:text-medium font-normal ${componentStyle}`}
+                      >
+                        <p>
+                          <span className="text-warning">Importante!</span> Debe
+                          incluir a todos sus hijos biologicos, adoptados,
+                          hijastros/as solteros menores a 21 años a partir del
+                          dia del registro de esta aplicacion. Debe incluir
+                          hijos que viven y que no viven con usted, ademas hijos
+                          que aun despues de ser acreedores a la loteria no
+                          deseen viajar a los Estados Unidos con usted.
+                        </p>
+                        <p className="my-4">
+                          Dar click en el botón{" "}
+                          <span>
+                            <PersonAdd className="h-5 aspect-w-1" />
+                          </span>{" "}
+                          para agregar otro hij@.
+                        </p>
+                      </div>
+
+                      {fields.map((field, index) => {
+                        return (
+                          <div key={field.id}>
+                            <div
+                              className={`grid grid-flow-row md:grid-cols-4 gap-5 ${componentStyle}`}
+                            >
+                              <div className="md:col-span-2">
+                                <Input
+                                  type="text"
+                                  size="lg"
+                                  isRequired
+                                  variant="underlined"
+                                  label="Primer nombre"
+                                  {...register(
+                                    `children.${index}.first_name` as const
+                                  )}
+                                  labelPlacement="outside"
+                                  placeholder="JORGE"
+                                  classNames={{
+                                    label: labelsStyle,
+                                    input: inputStyle,
+                                  }}
+                                />
+                              </div>
+                              <div className="md:col-span-2">
+                                <Input
+                                  type="text"
+                                  size="lg"
+                                  isRequired
+                                  variant="underlined"
+                                  label="Segundo nombre"
+                                  {...register(
+                                    `children.${index}.second_name` as const
+                                  )}
+                                  labelPlacement="outside"
+                                  placeholder="CARLOS"
+                                  classNames={{
+                                    label: labelsStyle,
+                                    input: inputStyle,
+                                  }}
+                                />
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <Input
+                                  size="lg"
+                                  type="text"
+                                  isRequired
+                                  variant="underlined"
+                                  {...register(
+                                    `children.${index}.apellidos` as const
+                                  )}
+                                  label="Apellidos"
+                                  labelPlacement="outside"
+                                  placeholder="CRUZ TAPIA"
+                                  classNames={{
+                                    label: labelsStyle,
+                                    input: inputStyle,
+                                  }}
+                                />
+                              </div>
+                              <Input
+                                size="lg"
+                                type="number"
+                                isRequired
+                                variant="underlined"
+                                {...register(`children.${index}.edad` as const)}
+                                label="Edad"
+                                labelPlacement="outside"
+                                placeholder="5 años"
+                                classNames={{
+                                  label: labelsStyle,
+                                  input: inputStyle,
+                                }}
+                              />
+                              <button onClick={() => remove(index)}>
+                                <PersonDelete className="h-8 md:h-10 aspect-w-1" />
+                              </button>
+                            </div>
+                            <Divider className="mb-4" />
+                          </div>
+                        );
+                      })}
+
+                      <div
+                        className={`text-sm md:text-medium flex relative justify-center ${componentStyle}`}
+                      >
+                        <button
+                          color="primary"
+                          onClick={() =>
+                            append({
+                              first_name: "nombre",
+                              second_name: "nombre",
+                              apellidos: "apellido",
+                              edad: 6,
+                            })
+                          }
+                        >
+                          <PersonAdd className="h-12 aspect-w-1" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
                 <div
                   id="foto_visa"
                   className="flex flex-col items-center gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
-                  <div className={`border-b-2 border-primary/50 w-full ${componentStyle}`}>
-                    <h1>Foto visa</h1>
+                  <div
+                    className={`border-b-2 border-primary/50 w-full ${componentStyle}`}
+                  >
+                    <h1>Foto visa y documento de identidad</h1>
                   </div>
 
-                  <div className={`gap-4 text-sm md:text-medium w-full text-center ${componentStyle}`}>
+                  <div
+                    className={`gap-4 text-sm md:text-medium w-full text-center ${componentStyle}`}
+                  >
                     <h1> Requisitos </h1>
                     <p className="font-normal">
                       Cargar fotografias en formato .jpg tamaño 5x5 cm fondo
@@ -925,49 +1043,22 @@ export default function Page() {
                     />
                   </div>
 
-                  <div className={`text-center ${componentStyle}`}>
-                    <div className="text-sm md:text-medium my-4">Aplicante</div>
-                    <Skeleton
-                      isLoaded={createObjectURLs["aplicante"] != null}
-                      className=" w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
-                    >
-                      {createObjectURLs["aplicante"] && (
-                        <Image
-                          src={createObjectURLs["aplicante"]}
-                          fill
-                          alt={"visa photo"}
-                        />
-                      )}
-                    </Skeleton>
-
-                    <div className="w-full h-fit my-4">
-                      <Input
-                        type="file"
-                        isRequired
-                        {...register("foto_aplicante", {
-                          onChange: (e) => uploadToClient(e, 0, "aplicante"),
-                        })}
-                        accept=".jpg, .jpeg, .png"
-                        //placeholder="mm/dd/yyyy"
-                        variant="underlined"
-                        labelPlacement="outside"
-                        classNames={{
-                          label: labelsStyle,
-                        }}
-                      />
+                  <div
+                    className={`grid grid-flow-row md:grid-cols-2 gap-3 text-center ${componentStyle}`}
+                  >
+                    <div className="md:col-span-2 text-medium md:text-xl my-4">
+                      Aplicante
                     </div>
-                  </div>
 
-                  {estadoCivil === "casado" && (
-                    <div className={`text-center ${componentStyle}`}>
-                      <div className="text-sm md:text-medium my-4">Conyugue</div>
+                    <div className="flex flex-col md:mr-5">
+                      <h1 className="mb-8">Foto tipo visa</h1>
                       <Skeleton
-                        isLoaded={createObjectURLs["conyugue"] != null}
-                        className="w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
+                        isLoaded={createObjectURLs["aplicante"] != null}
+                        className=" w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
                       >
-                        {createObjectURLs["conyugue"] && (
+                        {createObjectURLs["aplicante"] && (
                           <Image
-                            src={createObjectURLs["conyugue"]}
+                            src={createObjectURLs["aplicante"]}
                             fill
                             alt={"visa photo"}
                           />
@@ -978,10 +1069,11 @@ export default function Page() {
                         <Input
                           type="file"
                           isRequired
-                          {...register("foto_conyugue", {
-                            onChange: (e) => uploadToClient(e, 0, "conyugue"),
+                          {...register("foto_aplicante", {
+                            onChange: (e) => uploadToClient(e, 0, "aplicante"),
                           })}
                           accept=".jpg, .jpeg, .png"
+                          //placeholder="mm/dd/yyyy"
                           variant="underlined"
                           labelPlacement="outside"
                           classNames={{
@@ -990,40 +1082,202 @@ export default function Page() {
                         />
                       </div>
                     </div>
+
+                    <div className="flex flex-col md:ml-5">
+                      <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+
+                      <Skeleton
+                        isLoaded={createObjectURLs["aplicanteID"] != null}
+                        className=" w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                      >
+                        {createObjectURLs["aplicanteID"] && (
+                          <Image
+                            src={createObjectURLs["aplicanteID"]}
+                            fill
+                            alt={"visa photo ID"}
+                          />
+                        )}
+                      </Skeleton>
+
+                      <div className="w-full h-fit my-4">
+                        <Input
+                          type="file"
+                          isRequired
+                          {...register("foto_aplicante_id", {
+                            onChange: (e) =>
+                              uploadToClient(e, 0, "aplicanteID"),
+                          })}
+                          accept=".jpg, .jpeg, .png"
+                          //placeholder="mm/dd/yyyy"
+                          variant="underlined"
+                          labelPlacement="outside"
+                          classNames={{
+                            label: labelsStyle,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {estadoCivil === "casado" && (
+                    <div
+                      className={`text-center grid grid-flow-row md:grid-cols-2 gap-3 ${componentStyle}`}
+                    >
+                      <div className="md:col-span-2 text-medium md:text-xl my-4">
+                        Conyugue
+                      </div>
+                      <div className="flex flex-col md:mr-5">
+                        <h1 className="mb-8">Foto tipo visa</h1>
+                        <Skeleton
+                          isLoaded={createObjectURLs["conyugue"] != null}
+                          className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                        >
+                          {createObjectURLs["conyugue"] && (
+                            <Image
+                              src={createObjectURLs["conyugue"]}
+                              fill
+                              alt={"visa photo"}
+                            />
+                          )}
+                        </Skeleton>
+
+                        <div className="w-full h-fit my-4">
+                          <Input
+                            type="file"
+                            isRequired
+                            {...register("foto_conyugue", {
+                              onChange: (e) => uploadToClient(e, 0, "conyugue"),
+                            })}
+                            accept=".jpg, .jpeg, .png"
+                            variant="underlined"
+                            labelPlacement="outside"
+                            classNames={{
+                              label: labelsStyle,
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col md:ml-5">
+                        <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+                        <Skeleton
+                          isLoaded={createObjectURLs["conyugueID"] != null}
+                          className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                        >
+                          {createObjectURLs["conyugueID"] && (
+                            <Image
+                              src={createObjectURLs["conyugueID"]}
+                              fill
+                              alt={"visa photo"}
+                            />
+                          )}
+                        </Skeleton>
+
+                        <div className="w-full h-fit my-4">
+                          <Input
+                            type="file"
+                            isRequired
+                            {...register("foto_conyugue_id", {
+                              onChange: (e) =>
+                                uploadToClient(e, 0, "conyugueID"),
+                            })}
+                            accept=".jpg, .jpeg, .png"
+                            variant="underlined"
+                            labelPlacement="outside"
+                            classNames={{
+                              label: labelsStyle,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   {haveKids &&
                     fields.map((field, index) => {
                       return (
-                        <div key={field.id} className={`text-center ${componentStyle}`}>
-                          <div className="text-sm md:text-medium my-4">{`Carga #${
-                            index + 1
-                          }`}</div>
-                          <Skeleton
-                            isLoaded={createObjectURLs[`kid_${index}`] != null}
-                            className="w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
-                          >
-                            {createObjectURLs[`kid_${index}`] && (
-                              <Image
-                                src={createObjectURLs[`kid_${index}`]!}
-                                fill
-                                alt={"visa photo"}
-                              />
-                            )}
-                          </Skeleton>
+                        <div
+                          key={field.id}
+                          className={`grid grid-flow-row md:grid-cols-2 gap-3 text-center ${componentStyle}`}
+                        >
+                          <div className="md:col-span-2 text-medium md:text-xl my-4">
+                            {`Carga #${index + 1}`}
+                          </div>
 
-                          <div key={field.id} className="w-full h-fit my-4">
-                            <Input
-                              type="file"
-                              isRequired
-                              onChange={(e) => uploadToClient(e, index, "kid")}
-                              accept=".jpg, .jpeg, .png"
-                              variant="underlined"
-                              labelPlacement="outside"
-                              classNames={{
-                                label: labelsStyle,
-                              }}
-                            />
+                          <div className="flex flex-col md:mr-5">
+                            <h1 className="mb-8">Foto tipo visa</h1>
+                            <Skeleton
+                              isLoaded={
+                                createObjectURLs[`kid_${index}`] != null
+                              }
+                              className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                            >
+                              {createObjectURLs[`kid_${index}`] && (
+                                <Image
+                                  src={createObjectURLs[`kid_${index}`]!}
+                                  fill
+                                  alt={"visa photo"}
+                                />
+                              )}
+                            </Skeleton>
+
+                            <div className="w-full h-fit my-4">
+                              <Input
+                                type="file"
+                                isRequired
+                                {...register(
+                                  `children.${index}.foto_kid` as const,
+                                  {
+                                    onChange: (e) =>
+                                      uploadToClient(e, index, "kid"),
+                                  }
+                                )}
+                                accept=".jpg, .jpeg, .png"
+                                variant="underlined"
+                                labelPlacement="outside"
+                                classNames={{
+                                  label: labelsStyle,
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col md:ml-5">
+                            <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+                            <Skeleton
+                              isLoaded={
+                                createObjectURLs[`kidID_${index}`] != null
+                              }
+                              className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                            >
+                              {createObjectURLs[`kidID_${index}`] && (
+                                <Image
+                                  src={createObjectURLs[`kidID_${index}`]!}
+                                  fill
+                                  alt={"visa photo"}
+                                />
+                              )}
+                            </Skeleton>
+
+                            <div className="w-full h-fit my-4">
+                              <Input
+                                type="file"
+                                isRequired
+                                {...register(
+                                  `children.${index}.foto_kid_id` as const,
+                                  {
+                                    onChange: (e) =>
+                                      uploadToClient(e, index, "kidID"),
+                                  }
+                                )}
+                                accept=".jpg, .jpeg, .png"
+                                variant="underlined"
+                                labelPlacement="outside"
+                                classNames={{
+                                  label: labelsStyle,
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       );
@@ -1035,7 +1289,14 @@ export default function Page() {
                     isSelected={acceptPolitics}
                     onValueChange={setAcceptPolitics}
                   >
-                    <Link onClick={()=>{setTypeWarning("politics"); onOpen();}}>POLITICA DE CONFIDENCIALIDAD</Link>
+                    <Link
+                      onClick={() => {
+                        setTypeWarning("politics");
+                        onOpen();
+                      }}
+                    >
+                      POLITICA DE CONFIDENCIALIDAD
+                    </Link>
                   </Checkbox>
                 </div>
 
@@ -1065,25 +1326,55 @@ export default function Page() {
           <ModalContent>
             {(onClose) => (
               <>
-                <ModalHeader >
-                  {typeWarning == "warning"
-                    ? <p className="text-warning">Warning: Image out of size limits</p> 
-                    : <p className="text-primary">POLITICA DE CONFIDENCIALIDAD</p>}
+                <ModalHeader>
+                  {isSubmitSuccessful ? (
+                    <p className="text-success">
+                      Successful: Formulario enviado correctamente!.
+                    </p>
+                  ) : typeWarning == "warning" ? (
+                    <p className="text-warning">
+                      Warning: Image out of size limits
+                    </p>
+                  ) : (
+                    <p className="text-primary">POLITICA DE CONFIDENCIALIDAD</p>
+                  )}
                 </ModalHeader>
-                <ModalBody className="text-justify text-sm md:text-medium ">                  
-                    {typeWarning == "warning"
-                      ? <p>La imagen subida tiene un tamaño mayor a 1mb. Se recomienda verificar el tamaño del archivo. Si continua teniendo problemas subiendo las fotos, contactarse por interno.</p>
-                      : <p>La informacion ingresada es requerida segun la sección 222 del acto de imigración nacional de los Estados Unidos INA sección 222(f). Sus datos seran confidenciales y seran utilizados unica y exclusivamente para la formulacion, administracion o implementacion de la imigracion, nacionalidad y otras leyes de los Estados Unidos. <Spacer y={4} /> Sus datos NO seran compartidos con ninguna otra empresa, corporacion, fundacion o tercera persona.</p>}
-                  
+                <ModalBody className="text-justify text-sm md:text-medium ">
+                  {isSubmitSuccessful ? (
+                    <p>
+                      Nos contactaremos mediante el número telefónico del
+                      aplicante.
+                    </p>
+                  ) : typeWarning == "warning" ? (
+                    <p>
+                      La imagen subida tiene un tamaño mayor a 1mb. Se
+                      recomienda verificar el tamaño del archivo. Si continua
+                      teniendo problemas subiendo las fotos, contactarse por
+                      interno.
+                    </p>
+                  ) : (
+                    <p>
+                      La informacion ingresada es requerida segun la sección 222
+                      del acto de imigración nacional de los Estados Unidos INA
+                      sección 222(f). Sus datos seran confidenciales y seran
+                      utilizados unica y exclusivamente para la formulacion,
+                      administracion o implementacion de la imigracion,
+                      nacionalidad y otras leyes de los Estados Unidos.{" "}
+                      <Spacer y={4} /> Sus datos NO seran compartidos con
+                      ninguna otra empresa, corporacion, fundacion o tercera
+                      persona.
+                    </p>
+                  )}
                 </ModalBody>
                 <ModalFooter>
                   <Button
                     color="primary"
                     variant="solid"
-                    onPress={() => {
-                      setTypeWarning("politics");
-                      onClose();
-                    }}
+                    onPress={() =>
+                      isSubmitSuccessful
+                        ? (onClose(), setClosePage(true))
+                        : (setTypeWarning("politics"), onClose())
+                    }
                     className="text-sm md:text-medium font-bold"
                   >
                     Cerrar

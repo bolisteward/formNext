@@ -37,12 +37,14 @@ export interface IFormInput {
   passport_emision: Date;
   passport_expiration: Date;
   education: NivelEducacion;
-  foto_aplicante: FileList;
+  foto_aplicante: FileList | null;
+  foto_aplicante_id: FileList | null;
 
   first_name_conyugue: string;
   second_name_conyugue: string;
   apellidos_conyugue: string;
-  foto_conyugue: FileList;
+  foto_conyugue: FileList | null;
+  foto_conyugue_id: FileList | null;
   passport_conyugue: string;
   passport_emision_conyugue: Date;
   passport_expiration_conyugue: Date;
@@ -55,7 +57,8 @@ export interface Kid {
   second_name: string;
   apellidos: string;
   edad: number;
-  foto_kid?: FileList;
+  foto_kid?: FileList | null;
+  foto_kid_id?: FileList | null;
 }
 
 export interface FormDataAplicante {
@@ -114,11 +117,13 @@ export interface IFormSearch {
   passport_expiration: Date;
   education: NivelEducacion;
   foto_aplicante: string;
+  foto_aplicante_pss: string;
 
   first_name_conyugue: string;
   second_name_conyugue: string;
   apellidos_conyugue: string;
   foto_conyugue: string;
+  foto_conyugue_pss: string;
   passport_conyugue: string;
   passport_emision_conyugue: Date;
   passport_expiration_conyugue: Date;
@@ -131,4 +136,5 @@ export interface KidSearch {
   apellidos: string;
   edad: string;
   foto_kid: string;
+  foto_kid_pss: string;
 }

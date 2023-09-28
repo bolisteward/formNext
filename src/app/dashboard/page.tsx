@@ -2,13 +2,7 @@
 
 import { Metadata } from "next";
 
-import {
-  Divider,
-  Input,
-  Switch,
-  Button,
-  Skeleton,
-} from "@nextui-org/react";
+import { Divider, Input, Switch, Button, Skeleton } from "@nextui-org/react";
 
 import Image from "next/image";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -35,28 +29,24 @@ export default function Page() {
   const [sexo, setSexo] = useState<string | null>(null);
   const [estadoCivil, setEstadoCivil] = useState<string | null>(null);
   const [kids, setKids] = useState<KidSearch[] | null>(null);
-  const [fotoCo, setFotoCo] = useState<string | null>(null);
-  const [fotoAp, setFotoAp] = useState<string | null>(null);
-  
+  const [fotoCo, setFotoCo] = useState<string[] | null>(null);
+  const [fotoAp, setFotoAp] = useState<string[] | null>(null);
 
   const labelsStyle = "text-primary font-bold text-sm md:text-medium";
   const inputStyle =
     "bg-transparent text-primary/90 text-sm md:text-medium placeholder:text-primary/50 ";
   const componentStyle = "p-2 md:p-4";
 
-  const onSubmit: SubmitHandler<IFormSearch> = async (
-    data: IFormSearch
-  ) => {
+  const onSubmit: SubmitHandler<IFormSearch> = async (data: IFormSearch) => {
     try {
-      
       const url = new URL("https://form.visaglobal.com.ec/register/");
       url.searchParams.append("names", data.names_search.toUpperCase());
       url.searchParams.append("surnames", data.surnames_search.toUpperCase());
-  
+
       const forminfo = await fetch(url.toString(), {
         method: "GET",
       });
-      
+
       /*
       const url = new URL("http://localhost:3000/api/getdata/");
       url.searchParams.append("names", data.names_search.toUpperCase());
@@ -64,15 +54,18 @@ export default function Page() {
   
       const forminfo = await fetch(url.toString());
       */
-  
+
       if (!forminfo.ok) {
         throw new Error("No se pudo obtener la respuesta de la API");
       }
-  
+
       const aplicante_data = await forminfo.json();
-          
+
       setValue("first_name", aplicante_data.aplicante.names.split(" ")[0]);
-      setValue("second_name", aplicante_data.aplicante.names.split(" ")[1]?? "");
+      setValue(
+        "second_name",
+        aplicante_data.aplicante.names.split(" ")[1] ?? ""
+      );
       setValue("apellidos", aplicante_data.aplicante.surnames);
       setSexo(aplicante_data.aplicante.sexo);
       setValue("estado_civil", aplicante_data.aplicante.civil_status);
@@ -88,39 +81,68 @@ export default function Page() {
       setValue("email", aplicante_data.aplicante.email);
       setValue("passport", aplicante_data.aplicante.passport);
       setValue("passport_emision", aplicante_data.aplicante.passport_emision);
-      setValue("passport_expiration", aplicante_data.aplicante.passport_expiration);
-      setValue("education", aplicante_data.aplicante.education as NivelEducacion);
-      setFotoAp(aplicante_data.aplicante.foto_url);
-      
-      if(aplicante_data.aplicante.civil_status === "casado"){
-        setValue("first_name_conyugue", aplicante_data.familiares.conyugue.names.split(" ")[0]);
-        setValue("second_name_conyugue", aplicante_data.familiares.conyugue.names.split(" ")[1]?? "");
-        setValue("apellidos_conyugue", aplicante_data.familiares.conyugue.surnames);
-        setValue("passport_conyugue", aplicante_data.familiares.conyugue.passport);
-        setValue("passport_emision_conyugue", aplicante_data.familiares.conyugue.passport_emision);
-        setValue("passport_expiration_conyugue", aplicante_data.familiares.conyugue.passport_expiration);
-        setFotoCo(aplicante_data.familiares.conyugue.foto_url);
-      }
-      
-      
+      setValue(
+        "passport_expiration",
+        aplicante_data.aplicante.passport_expiration
+      );
+      setValue(
+        "education",
+        aplicante_data.aplicante.education as NivelEducacion
+      );
+      setFotoAp([
+        aplicante_data.aplicante.foto_url,
+        aplicante_data.aplicante.foto_url_pss,
+      ]);
 
-      if( aplicante_data.aplicante.children > 0) {
-        const listKids: KidSearch[] = aplicante_data.familiares.hijos.map((kid: any) => ({
-          first_name: kid.names.split(" ")[0] ,
-          second_name: kid.names.split(" ")[1]?? "" ,
-          apellidos: kid.surnames,
-          edad: kid.edad,
-          foto_kid: kid.foto_url
-        }))
+      if (aplicante_data.aplicante.civil_status === "casado") {
+        setValue(
+          "first_name_conyugue",
+          aplicante_data.familiares.conyugue.names.split(" ")[0]
+        );
+        setValue(
+          "second_name_conyugue",
+          aplicante_data.familiares.conyugue.names.split(" ")[1] ?? ""
+        );
+        setValue(
+          "apellidos_conyugue",
+          aplicante_data.familiares.conyugue.surnames
+        );
+        setValue(
+          "passport_conyugue",
+          aplicante_data.familiares.conyugue.passport
+        );
+        setValue(
+          "passport_emision_conyugue",
+          aplicante_data.familiares.conyugue.passport_emision
+        );
+        setValue(
+          "passport_expiration_conyugue",
+          aplicante_data.familiares.conyugue.passport_expiration
+        );
+        setFotoCo([
+          aplicante_data.familiares.conyugue.foto_url,
+          aplicante_data.familiares.conyugue.foto_url_pss,
+        ]);
+      }
+
+      if (aplicante_data.aplicante.children > 0) {
+        const listKids: KidSearch[] = aplicante_data.familiares.hijos.map(
+          (kid: any) => ({
+            first_name: kid.names.split(" ")[0],
+            second_name: kid.names.split(" ")[1] ?? "",
+            apellidos: kid.surnames,
+            edad: kid.edad,
+            foto_kid: kid.foto_url,
+            foto_kid_pss: kid.foto_url_pss,
+          })
+        );
         setKids(listKids);
       }
-
-  
     } catch (error) {
       alert("Error while sending form, please try one more time!");
       console.error("Error al llamar a la API:", error);
     }
-  };    
+  };
 
   return (
     <div
@@ -178,7 +200,7 @@ export default function Page() {
                   <div className={componentStyle}>
                     <Input
                       type="text"
-                      size="lg"                      
+                      size="lg"
                       variant="underlined"
                       label="Nombres"
                       {...register("names_search")}
@@ -281,10 +303,10 @@ export default function Page() {
 
                 <div
                   id="genero"
-                  className="grid grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                  className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
                   <div
-                    className={`col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
                   >
                     <h1>Género</h1>
                   </div>
@@ -312,7 +334,7 @@ export default function Page() {
                   >
                     <h1>Estado civil</h1>
                   </div>
-                                    
+
                   <div className={componentStyle}>
                     <Input
                       size="lg"
@@ -331,13 +353,13 @@ export default function Page() {
                   </div>
 
                   <div className={componentStyle}>
-                    <div className="col-span-2 text-sm md:text-medium mb-3">
+                    <div className="text-sm md:text-medium mb-3">
                       <h3 className="after:content-['*'] after:text-danger after:ml-0.5">
                         Tiene hijos?
                       </h3>
                     </div>
                     <Switch
-                      isSelected={kids? kids.length > 0 : false}
+                      isSelected={kids ? kids.length > 0 : false}
                       aria-label="Automatic updates"
                     />
                   </div>
@@ -345,10 +367,10 @@ export default function Page() {
 
                 <div
                   id="fecha_nac"
-                  className="grid grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
+                  className="grid grid-flow-row md:grid-cols-2 gap-3 border-2 border-primary/50 rounded-lg pb-4"
                 >
                   <div
-                    className={`col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
+                    className={`md:col-span-2 border-b-2 border-primary/50 ${componentStyle}`}
                   >
                     <h1>Fecha de nacimiento</h1>
                   </div>
@@ -558,7 +580,7 @@ export default function Page() {
                   >
                     <h1>Educación</h1>
                   </div>
-                  
+
                   <div className={componentStyle}>
                     <Input
                       type="text"
@@ -693,12 +715,12 @@ export default function Page() {
                       className={`border-b-2 border-primary/50 ${componentStyle}`}
                     >
                       <h1>Datos de sus hijos</h1>
-                    </div>                    
+                    </div>
 
                     {kids.map((kid, index) => {
                       return (
-                        <div  key={index}>
-                          <div                            
+                        <div key={index}>
+                          <div
                             className={`grid grid-flow-row md:grid-cols-4 gap-5 ${componentStyle}`}
                           >
                             <div className="md:col-span-2">
@@ -768,7 +790,7 @@ export default function Page() {
                           <Divider className="mb-4" />
                         </div>
                       );
-                    })}                    
+                    })}
                   </div>
                 )}
 
@@ -782,63 +804,115 @@ export default function Page() {
                     <h1>Foto visa</h1>
                   </div>
 
-                  
-                  <div className={`text-center ${componentStyle}`}>
-                    <div className="text-sm md:text-medium my-4">Aplicante</div>
-                    <Skeleton
-                      isLoaded={fotoAp != null}
-                      className=" w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
-                    >
-                      <Image
-                          src={fotoAp ?? "../uploads/foto.jpg"}
+                  <div
+                    className={`grid grid-flow-row md:grid-cols-2 gap-3 text-center ${componentStyle}`}
+                  >
+                    <div className="md:col-span-2 text-medium md:text-xl my-4">
+                      Aplicante
+                    </div>
+                    <div className="flex flex-col md:mr-5">
+                      <h1 className="mb-8">Foto tipo visa</h1>
+                      <Skeleton
+                        isLoaded={(fotoAp && fotoAp[0]) != null}
+                        className=" w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                      >
+                        <Image
+                          src={(fotoAp && fotoAp[0]) ?? "../uploads/foto.jpg"}
                           fill
                           alt={"visa photo"}
                         />
-                    </Skeleton>
+                      </Skeleton>
+                    </div>
 
-                    
+                    <div className="flex flex-col md:ml-5">
+                      <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+                      <Skeleton
+                        isLoaded={(fotoAp && fotoAp[1]) != null}
+                        className=" w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                      >
+                        <Image
+                          src={(fotoAp && fotoAp[1]) ?? "../uploads/foto.jpg"}
+                          fill
+                          alt={"visa photo ID"}
+                        />
+                      </Skeleton>
+                    </div>
                   </div>
 
                   {estadoCivil === "casado" && (
-                    <div className={`text-center ${componentStyle}`}>
-                      <div className="text-sm md:text-medium my-4">
+                    <div
+                      className={`text-center grid grid-flow-row md:grid-cols-2 gap-3 ${componentStyle}`}
+                    >
+                      <div className="md:col-span-2 text-medium md:text-xl my-4">
                         Conyugue
                       </div>
-                      <Skeleton
-                        isLoaded={fotoCo != null}
-                        className="w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
-                      >
-                        <Image
-                            src={fotoCo ?? "../uploads/foto.jpg"}
+                      <div className="flex flex-col md:mr-5">
+                        <h1 className="mb-8">Foto tipo visa</h1>
+                        <Skeleton
+                          isLoaded={(fotoCo && fotoCo[0]) != null}
+                          className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                        >
+                          <Image
+                            src={(fotoCo && fotoCo[0]) ?? "../uploads/foto.jpg"}
                             fill
                             alt={"visa photo"}
                           />
-                      </Skeleton>
-                      
+                        </Skeleton>
+                      </div>
+                      <div className="flex flex-col md:ml-5">
+                        <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+                        <Skeleton
+                          isLoaded={(fotoCo && fotoCo[1]) != null}
+                          className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                        >
+                          <Image
+                            src={(fotoCo && fotoCo[1]) ?? "../uploads/foto.jpg"}
+                            fill
+                            alt={"visa photo"}
+                          />
+                        </Skeleton>
+                      </div>
                     </div>
                   )}
 
-                  {kids && kids.length>0 &&
+                  {kids &&
+                    kids.length > 0 &&
                     kids.map((kid, index) => {
                       return (
                         <div
                           key={index}
-                          className={`text-center ${componentStyle}`}
+                          className={`grid grid-flow-row md:grid-cols-2 gap-3 text-center ${componentStyle}`}
                         >
-                          <div className="text-sm md:text-medium my-4">{`Carga #${
-                            index + 1
-                          }`}</div>
-                          <Skeleton
-                            isLoaded={kid.foto_kid != null}
-                            className="w-52 h-52 md:w-96 md:h-96 flex relative  mx-auto"
-                          >
-                            <Image
+                          <div className="md:col-span-2 text-medium md:text-xl my-4">
+                            {`Carga #${index + 1}`}
+                          </div>
+
+                          <div className="flex flex-col md:mr-5">
+                            <h1 className="mb-8">Foto tipo visa</h1>
+                            <Skeleton
+                              isLoaded={kid.foto_kid != null}
+                              className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                            >
+                              <Image
                                 src={kid.foto_kid}
                                 fill
                                 alt={"visa photo"}
                               />
-                          </Skeleton>
-                          
+                            </Skeleton>
+                          </div>
+                          <div className="flex flex-col md:ml-5">
+                            <h1 className="mb-8">Foto Pasaporte / cédula</h1>
+                            <Skeleton
+                              isLoaded={kid.foto_kid_pss != null}
+                              className="w-52 h-52 md:w-72 md:h-72 flex relative  mx-auto"
+                            >
+                              <Image
+                                src={kid.foto_kid_pss}
+                                fill
+                                alt={"visa photo"}
+                              />
+                            </Skeleton>
+                          </div>
                         </div>
                       );
                     })}
